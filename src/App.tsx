@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, NavigateFunction } from 'react-router';
 
 import { useAppDispatch, useAppSelector } from './redux/hooks';
-import { setStudentsRecord , setStudentName} from './redux/studentBoardSlice';
+import { setStudentName} from './redux/studentBoardSlice';
 import useAirtableClient from './airtable-client';
 import {login} from "./redux/authSlice"
 import './styles/App.css';
@@ -11,7 +11,7 @@ function App() {
   const dispatch = useAppDispatch();
   const {fetchStudentsRecord} = useAirtableClient();
 
-  const studentRecordState = useAppSelector(state => state.school.studentsRecord);
+  const studentRecord = useAppSelector(state => state.school.studentsRecord);
 
   const [name, setName] = useState("");
   const [noName, setNoName] = useState(false)
@@ -19,28 +19,22 @@ function App() {
   const navigate: NavigateFunction = useNavigate();
 
   useEffect(() => {
-    const studentRecord = fetchStudentsRecord();
-
-    if (studentRecord.length > 0) {
-      console.log(studentRecord);
-      // Dispatch result to store
-      dispatch(setStudentsRecord(studentRecord));
+    if (studentRecord === null) {
+      fetchStudentsRecord(); 
     }
-
-  }, [dispatch, fetchStudentsRecord])
-
+  },[fetchStudentsRecord,studentRecord])
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>): void {
     e.preventDefault();
 
     if (name !== "") {
-      studentRecordState.find((record: any) => {
+      studentRecord.find((record: any) => {
         if (record.name.toLowerCase() !== name.toLocaleLowerCase()) {
           setNoName(true);
         }
 
         if (record.name.toLowerCase() === name.toLocaleLowerCase()) {
-          dispatch(setStudentName(name));
+          dispatch(setStudentName(record.name));
           dispatch(login());
 
           // Redirec to Board component
